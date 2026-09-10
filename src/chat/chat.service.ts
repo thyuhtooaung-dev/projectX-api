@@ -11,10 +11,9 @@ export class ChatService {
 	private readonly logger = new Logger(ChatService.name);
 	private openai: OpenAI;
 
-	private readonly PRIMARY_MODEL =
-		"nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free";
+	private readonly PRIMARY_MODEL = "nex-agi/nex-n2.5-mini:free";
 	private readonly FALLBACK_MODELS = [
-		"nvidia/nemotron-3.5-lightning:free",
+		"nex-agi/nex-n2.5-pro:free",
 		"liquid/lfm-2.5-2.6b:free",
 	];
 
@@ -189,24 +188,80 @@ export class ChatService {
 		return this.conversationsService.findOne(id);
 	}
 
-	getAvailableModels() {
-		return [
-			{
-				id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-				name: "Nemotron 3 Nano Omni (Free Reasoning)",
-				description: "High quality reasoning & general conversational model",
-			},
-			{
-				id: "nvidia/nemotron-3.5-lightning:free",
-				name: "Nemotron 3.5 Lightning (Free)",
-				description: "Ultra-fast lightweight reasoning model",
-			},
-			{
-				id: "liquid/lfm-2.5-2.6b:free",
-				name: "Liquid LFM 2.5 (Free)",
-				description: "Efficient hybrid architecture model",
-			},
-		];
+	private cachedModelsKey = "";
+	private cachedModels: Array<{
+		id: string;
+		name: string;
+		description: string;
+	}> | null = null;
+	private cachedModelsExpiry = 0;
+
+	async getAvailableModels(): Promise<
+		Array<{ id: string; name: string; description: string }>
+	> {
+		const configuredModelIds = [this.PRIMARY_MODEL, ...this.FALLBACK_MODELS];
+		const cacheKey = configuredModelIds.join(",");
+
+		if (
+			this.cachedModels &&
+			this.cachedModelsKey === cacheKey &&
+			Date.now() < this.cachedModelsExpiry
+		) {
+			return this.cachedModels;
+		}
+
+		try {
+			const response = await this.openai.models.list();
+			const modelsMap = new Map<
+				string,
+				{ name?: string; description?: string }
+			>();
+
+			for (const model of response.data) {
+				const m = model as unknown as {
+					id: string;
+					name?: string;
+					description?: string;
+				};
+				modelsMap.set(m.id, m);
+			}
+
+			const models = configuredModelIds.map((id) => {
+				const remote = modelsMap.get(id);
+				return {
+					id,
+					name: remote?.name || this.formatFallbackModelName(id),
+					description:
+						remote?.description ||
+						"High performance OpenRouter conversational model",
+				};
+			});
+
+			this.cachedModels = models;
+			this.cachedModelsKey = cacheKey;
+			this.cachedModelsExpiry = Date.now() + 1000 * 60 * 15; // 15 minutes cache
+
+			return models;
+		} catch (error) {
+			this.logger.warn(
+				"Failed to fetch live model metadata from OpenRouter, using configured models fallback:",
+				error,
+			);
+			return configuredModelIds.map((id) => ({
+				id,
+				name: this.formatFallbackModelName(id),
+				description: "High performance OpenRouter conversational model",
+			}));
+		}
+	}
+
+	private formatFallbackModelName(modelId: string): string {
+		const rawName = modelId.split("/")[1] || modelId;
+		return rawName
+			.replace(/:free$/, "")
+			.split("-")
+			.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+			.join(" ");
 	}
 
 	private async createStreamWithFallback(

@@ -31,7 +31,7 @@ export class ChatController {
 	}
 
 	@Get("models")
-	getModels() {
+	async getModels() {
 		return this.chatService.getAvailableModels();
 	}
 
