@@ -1,7 +1,7 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from "class-validator";
 
 export class CreateConversationDto {
-  @IsOptional()
-  @IsString()
-  title?: string;
+	@IsOptional()
+	@IsString()
+	title?: string;
 }

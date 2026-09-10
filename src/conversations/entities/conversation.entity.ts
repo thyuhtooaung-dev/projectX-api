@@ -1,29 +1,33 @@
-import { Message } from '../../messages/entities/message.entity';
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+	Column,
+	CreateDateColumn,
+	Entity,
+	OneToMany,
+	PrimaryGeneratedColumn,
+	UpdateDateColumn,
+} from "typeorm";
+import { Message } from "../../messages/entities/message.entity";
 
-@Entity('conversations')
+@Entity("conversations")
 export class Conversation {
-  @PrimaryGeneratedColumn()
-  id: number;
+	@PrimaryGeneratedColumn()
+	id: number;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  title?: string;
+	@Column({ type: "varchar", length: 255, nullable: true })
+	title?: string;
 
-  @OneToMany(() => Message, (message: Message) => message.conversation, {
-    cascade: true,
-  })
-  messages: Message[];
+	@OneToMany(
+		() => Message,
+		(message: Message) => message.conversation,
+		{
+			cascade: true,
+		},
+	)
+	messages: Message[];
 
-  @CreateDateColumn()
-  createdAt: Date;
+	@CreateDateColumn()
+	createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+	@UpdateDateColumn()
+	updatedAt: Date;
 }

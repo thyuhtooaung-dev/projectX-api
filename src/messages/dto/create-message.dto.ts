@@ -1,23 +1,23 @@
 import {
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+	IsIn,
+	IsNotEmpty,
+	IsNumber,
+	IsOptional,
+	IsString,
+} from "class-validator";
 
 export class CreateMessageDto {
-  @IsNumber()
-  conversationId: number;
+	@IsNumber()
+	conversationId: number;
 
-  @IsIn(['system', 'user', 'assistant'])
-  role: 'system' | 'user' | 'assistant';
+	@IsIn(["system", "user", "assistant"])
+	role: "system" | "user" | "assistant";
 
-  @IsString()
-  @IsNotEmpty()
-  content: string;
+	@IsString()
+	@IsNotEmpty()
+	content: string;
 
-  @IsOptional()
-  @IsString()
-  reasoning?: string;
+	@IsOptional()
+	@IsString()
+	reasoning?: string;
 }
