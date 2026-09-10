@@ -9,7 +9,7 @@ import {
 	ParseIntPipe,
 	Post,
 } from "@nestjs/common";
-import type { CreateMessageDto } from "./dto/create-message.dto";
+import { CreateMessageDto } from "./dto/create-message.dto";
 import { MessagesService } from "./messages.service";
 
 @Controller("api/messages")

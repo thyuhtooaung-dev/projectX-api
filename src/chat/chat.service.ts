@@ -268,10 +268,12 @@ export class ChatService {
 		messages: { role: "system" | "user" | "assistant"; content: string }[],
 		requestedModel?: string,
 	) {
-		const candidateModels = requestedModel
+		const rawModels = requestedModel
 			? [requestedModel, this.PRIMARY_MODEL, ...this.FALLBACK_MODELS]
 			: [this.PRIMARY_MODEL, ...this.FALLBACK_MODELS];
+		const candidateModels = Array.from(new Set(rawModels));
 
+		let lastError: unknown;
 		for (const model of candidateModels) {
 			try {
 				const stream = await this.openai.chat.completions.create({
@@ -281,14 +283,18 @@ export class ChatService {
 				});
 
 				return { stream, modelUsed: model };
-			} catch (error) {
+			} catch (error: unknown) {
+				lastError = error;
 				this.logger.warn(
 					`Model ${model} failed, switching to next fallback... ${error}`,
 				);
 			}
 		}
 
-		throw new Error("All primary and fallback models failed.");
+		throw (
+			lastError ||
+			new Error("All primary and fallback OpenRouter models failed.")
+		);
 	}
 
 	private async generateTitle(

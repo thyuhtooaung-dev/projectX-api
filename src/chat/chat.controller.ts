@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import type { Response } from "express";
 import { ChatService } from "./chat.service";
-import type { ChatStreamDto } from "./dto/chat-stream.dto";
+import { ChatStreamDto } from "./dto/chat-stream.dto";
 
 @Controller("api/chat")
 export class ChatController {
